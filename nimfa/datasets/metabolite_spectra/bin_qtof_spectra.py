@@ -76,4 +76,4 @@ for f in files:
         if spectra['params']["source_instrument"].find("qT") > 0:
             all_spectra.append(spectra)
 
-bin_sparse_dok(mgf = all_spectra, verbose = True, bin_size = 0.1)
+bin_sparse_dok(mgf = all_spectra, verbose = True, bin_size = 0.1, output_file = "metabolite_matrix.pkl")
