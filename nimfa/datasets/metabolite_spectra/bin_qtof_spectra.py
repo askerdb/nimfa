@@ -25,7 +25,7 @@ def bin_sparse_dok(mgf, mgf_files=None, spectra_watchlist = None, output_file = 
     X = dok_matrix((len(bins), n_scans), dtype=np.float32)
     scan_names = []
     for spectrum_index, spectrum in enumerate(mgf):
-        scan_names.append(spectrum['params']['organism'] + "_" + spectrum['params']['scans'])
+        scan_names.append(spectrum['params']['organism'] + "_" + spectrum['params']['ionmode'] + "_" + spectrum['params']['scans'])
         if spectrum['params']['pepmass'][0] > 850:
             continue
         if len(spectrum['m/z array']) == 0:
