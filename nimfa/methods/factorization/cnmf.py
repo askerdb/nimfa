@@ -160,14 +160,14 @@ class Cnmf(nmf_std.Nmf_std):
       
             #CVX code goes here
             m,n = self.V.shape
-            x = cvx.Variable(n,n)
+            x = cvx.Variable([n,n])
             epsilon = 1e-5
             p = np.random.rand(n,1)
-            objective = cvx.Minimize(np.matmul(p.T, np.diag(x)))
-            constraints = [x.all() >= 0]
+            objective = cvx.Minimize(p.T @cvx.diag(x))
+            constraints = [x >= 0]
             for i in range(1, n):
                 constraints += [
-                np.linalg.norm(self.V[:,i] - np.matmul(self.V, X[:,i]),1) <= 2*epsilon,
+                cvx.norm((self.V[:,i].toarray().flatten() - self.V @ x[:,i]), p=1) <= 2*epsilon,
                 x[i,i] <= 1 ]
                 for j in range(1,n):
                     constraints += [x[i,j] <= x[i,i]]
