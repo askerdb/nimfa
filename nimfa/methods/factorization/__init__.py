@@ -8,6 +8,7 @@ from .icm import *
 from .lfnmf import *
 from .lsnmf import *
 from .nmf import *
+from .cnmf import *
 from .nsnmf import *
 from .pmf import *
 from .psmf import *
@@ -22,6 +23,7 @@ methods = {"bd": Bd,
            "lfnmf": Lfnmf,
            "lsnmf": Lsnmf,
            "nmf": Nmf,
+           "cnmf": Cnmf,
            "nsnmf": Nsnmf,
            "pmf": Pmf,
            "psmf": Psmf,
