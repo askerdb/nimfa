@@ -195,7 +195,7 @@ class Cnmf(nmf_std.Nmf_std):
         return mffit
 
     def __str__(self):
-        return '%s - update: %s obj: %s' % (self.name, self.update.__name__, self.objective.__name__)
+        return self.name
 
     def __repr__(self):
         return self.name
