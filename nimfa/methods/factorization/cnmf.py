@@ -160,6 +160,11 @@ class Cnmf(nmf_std.Nmf_std):
       
             #CVX code goes here
             m,n = self.V.shape
+
+            # Uncomment to normalize matrix
+            # D = np.diag(1./np.sum(self.V, axis=1))
+            # self.V = self.V @ D
+            
             x = cvx.Variable([n,n])
             epsilon = 1e-5
             p = np.random.rand(n,1)
@@ -167,13 +172,25 @@ class Cnmf(nmf_std.Nmf_std):
             constraints = [x >= 0]
             for i in range(1, n):
                 constraints += [
-                cvx.norm((self.V[:,i].toarray().flatten() - self.V @ x[:,i]), p=1) <= 2*epsilon,
+                cvx.norm((self.V[:,i].flatten() - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
                 x[i,i] <= 1 ]
                 for j in range(1,n):
                     constraints += [x[i,j] <= x[i,i]]
 
+            constraints += [cvx.trace(x) == self.rank]
             prob = cvx.Problem(objective, constraints)
+            # Both print None
             print(prob.value)
+            print(cvx.max(x))
+
+            # Untested code to find K vector of largest diagonal entries
+            x = cvx.diag(x)
+            K = []
+            for i in range(1, self.rank):
+               b = np.unravel_index(np.argmax(x), x.shape)
+               K.append(b)
+               x[b] = -1
+
 
             if self.callback:
                 self.final_obj = c_obj
