@@ -168,28 +168,32 @@ class Cnmf(nmf_std.Nmf_std):
             x = cvx.Variable([n,n])
             epsilon = 1e-5
             p = np.random.rand(n,1)
-            objective = cvx.Minimize(p.T @cvx.diag(x))
+            objective = cvx.Minimize(p.T @ cvx.reshape(cvx.diag(x),(n,1)))
             constraints = [x >= 0]
             for i in range(1, n):
                 constraints += [
-                cvx.norm((self.V[:,i].flatten() - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
+                cvx.norm((self.V[:,i] - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
                 x[i,i] <= 1 ]
                 for j in range(1,n):
                     constraints += [x[i,j] <= x[i,i]]
 
             constraints += [cvx.trace(x) == self.rank]
             prob = cvx.Problem(objective, constraints)
-            # Both print None
-            print(prob.value)
-            print(cvx.max(x))
+            prob.solve()
+            print("Problem Value: " + str(prob.value))
 
-            # Untested code to find K vector of largest diagonal entries
-            x = cvx.diag(x)
+            print("X: ")
+            print(x.value)
+            # Create a copy to make sure it's not immutable
+            X = np.array(np.diag(x.value))
             K = []
             for i in range(1, self.rank):
-               b = np.unravel_index(np.argmax(x), x.shape)
+               b = np.unravel_index(np.argmax(X), X.shape)[0]
                K.append(b)
-               x[b] = -1
+               X[b] = -1
+
+            print("K:")
+            print(K)
 
 
             if self.callback:
