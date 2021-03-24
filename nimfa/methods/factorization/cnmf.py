@@ -130,7 +130,7 @@ class Cnmf(nmf_std.Nmf_std):
        default convergence is tested each iteration.
     :type test_conv: `int`
     """
-    def __init__(self, V, seed=None, W=None, H=None, rank=30, max_iter=30,
+    def __init__(self, V, seed=None, W=None, H=None, p=None, rank=30, max_iter=30,
                  min_residuals=1e-5, test_conv=None, n_run=1, callback=None,
                  callback_init=None, track_factor=False, track_error=False,
                  conn_change=30, **options):
@@ -162,19 +162,28 @@ class Cnmf(nmf_std.Nmf_std):
             m,n = self.V.shape
 
             # Uncomment to normalize matrix
-            # D = np.diag(1./np.sum(self.V, axis=1))
-            # self.V = self.V @ D
+            summed = 1./np.sum(self.V, axis=0)
+            D= np.diagflat(summed)
+            self.V = self.V @ D
             
             x = cvx.Variable([n,n])
             epsilon = 1e-5
-            p = np.random.rand(n,1)
+            if self.p is None:
+               p = np.random.rand(n,1)
+            elif self.p.shape != (n,1) or self.p.shape != (1,n):
+               p = np.random.rand(n,1)
+            else:
+               p = self.p
+               if p.shape != (1,n):
+                  p = p.T
+         
             objective = cvx.Minimize(p.T @ cvx.reshape(cvx.diag(x),(n,1)))
             constraints = [x >= 0]
-            for i in range(1, n):
+            for i in range(0, n):
                 constraints += [
                 cvx.norm((self.V[:,i] - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
                 x[i,i] <= 1 ]
-                for j in range(1,n):
+                for j in range(0,n):
                     constraints += [x[i,j] <= x[i,i]]
 
             constraints += [cvx.trace(x) == self.rank]
@@ -187,7 +196,7 @@ class Cnmf(nmf_std.Nmf_std):
             # Create a copy to make sure it's not immutable
             X = np.array(np.diag(x.value))
             K = []
-            for i in range(1, self.rank):
+            for i in range(0, self.rank):
                b = np.unravel_index(np.argmax(X), X.shape)[0]
                K.append(b)
                X[b] = -1
