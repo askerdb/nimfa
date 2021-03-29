@@ -167,21 +167,25 @@ class Cnmf(nmf_std.Nmf_std):
             self.V = self.V @ D
             
             x = cvx.Variable([n,n])
-            epsilon = 1e-5
+
+            kappa = 0.2
+            beta = 2/self.rank
+            epsilon = kappa * (1-beta)/((self.rank-1)*(1-beta)+1)
+
             if self.p is None:
                p = np.random.rand(n,1)
-            elif self.p.shape != (n,1) or self.p.shape != (1,n):
+            elif self.p.shape != (n,1) and self.p.shape != (1,n):
                p = np.random.rand(n,1)
             else:
                p = self.p
-               if p.shape != (1,n):
+               if p.shape == (1,n):
                   p = p.T
-         
+            
             objective = cvx.Minimize(p.T @ cvx.reshape(cvx.diag(x),(n,1)))
             constraints = [x >= 0]
             for i in range(0, n):
                 constraints += [
-                cvx.norm((self.V[:,i] - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
+                cvx.norm((np.reshape(self.V[:,i], (m,1)) - self.V @ cvx.reshape(x[:,i], (n,1))), p=1) <= 2*epsilon,
                 x[i,i] <= 1 ]
                 for j in range(0,n):
                     constraints += [x[i,j] <= x[i,i]]
